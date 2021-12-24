@@ -39,8 +39,8 @@ jobs:\
         env:\
           GITHUB_RUN_NUMBER: \
         run: |\
-          docker build . --file Dockerfile --tag=siberblog/sonarqubetest:$\{\{ github.run_number \}\}\
-          docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER ariomer/sonarqubetest:latest\
+          docker build . --file Dockerfile --tag=ariomer/sonarqubetest:$\{\{ github.run_number \}\}\
+          docker tag ariomer:$GITHUB_RUN_NUMBER ariomer:latest\
 \
       - name: Docker Push\
         run: |\
