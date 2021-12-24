@@ -40,9 +40,9 @@ jobs:\
           GITHUB_RUN_NUMBER: \
         run: |\
           docker build . --file Dockerfile --tag=siberblog/sonarqubetest:$\{\{ github.run_number \}\}\
-          docker tag siberblog/sonarqubetest:$GITHUB_RUN_NUMBER siberblog/sonarqubetest:latest\
+          docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER ariomer/sonarqubetest:latest\
 \
       - name: Docker Push\
         run: |\
-          docker push siberblog/sonarqubetest:$GITHUB_RUN_NUMBER\
-          docker push siberblog/sonarqubetest:latest}
+          docker push ariomer/sonarqubetest:$GITHUB_RUN_NUMBER\
+          docker push ariomer/sonarqubetest:latest}
