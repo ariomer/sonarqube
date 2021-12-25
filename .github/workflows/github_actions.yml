@@ -71,20 +71,12 @@ jobs:
             #  Uninstall old versions
             #  sudo apt-get remove docker docker-engine docker.io containerd runc
             if [[ $(which docker) && $(docker --version) ]]; then
-                #  Verify
+                pwd
                 docker --version
-                #sudo docker run hello-world
-                echo "Stopping Service...."
-                #docker stop sonarqubetestdockerhub || true
-                #docker stop sonarqubetestawsecr || true
-                echo "Removing Container..."
                 docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
                 docker rm -f $(docker ps -aqf "name=sonarqubeawsecr") || true
-                echo "Removing Image..."
-                #docker images rmi $(docker images | grep 'sonarqubetest') || true
-                #docker images rmi $(docker images | grep 'sonarqubetestawsecr') || true
-                aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
-                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}:latest
+                aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
+                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             else
