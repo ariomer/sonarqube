@@ -78,13 +78,13 @@ jobs:
                 sh "docker stop sonarqubetestdockerhub || true"
                 sh "docker stop sonarqubetestawsecr || true"
                 echo "Removing Container..."
-                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
-                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubeawsecr\") || true"
+                sh "docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true"
+                sh "docker rm -f $(docker ps -aqf "name=sonarqubeawsecr") || true"
                 echo "Removing Image..."
-                sh "docker rmi \$(docker images | grep 'sonarqubetest') || true"
-                sh "docker rmi \$(docker images | grep 'sonarqubetestawsecr') || true"
+                sh "docker rmi $(docker images | grep 'sonarqubetest') || true"
+                sh "docker rmi $(docker images | grep 'sonarqubetestawsecr') || true"
                 sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
-                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 ${IMAGE_URI}:latest
+                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             else
@@ -136,13 +136,13 @@ jobs:
                 sh "docker stop sonarqubetestdockerhub || true"
                 sh "docker stop sonarqubetestawsecr || true"
                 echo "Removing Container..."
-                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
-                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubeawsecr\") || true"
+                sh "docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true"
+                sh "docker rm -f $(docker ps -aqf "name=sonarqubeawsecr") || true"
                 echo "Removing Image..."
-                sh "docker rmi \$(docker images | grep 'sonarqubetest') || true"
-                sh "docker rmi \$(docker images | grep 'sonarqubetestawsecr') || true"
+                sh "docker rmi $(docker images | grep 'sonarqubetest') || true"
+                sh "docker rmi $(docker images | grep 'sonarqubetestawsecr') || true"
                 sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
-                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 ${IMAGE_URI}:latest
+                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             fi
