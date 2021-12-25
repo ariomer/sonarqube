@@ -114,4 +114,5 @@ jobs:
                 sudo docker run hello-world
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
+            fi
           '
