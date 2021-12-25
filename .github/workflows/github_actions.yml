@@ -48,7 +48,7 @@ jobs:
       - name: Push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: sonarqubetest
+          ECR_REPOSITORY: sonarqubeawsecr
           
         run: |
           docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
@@ -79,13 +79,12 @@ jobs:
                 sh "docker stop sonarqubetestawsecr || true"
                 echo "Removing Container..."
                 sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
-                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestawsecr\") || true"
+                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubeawsecr\") || true"
                 echo "Removing Image..."
-                sh "docker rmi \$(docker images | grep 'sonarqubetestdockerhub') || true"
+                sh "docker rmi \$(docker images | grep 'sonarqubetest') || true"
                 sh "docker rmi \$(docker images | grep 'sonarqubetestawsecr') || true"
-                sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin public.ecr.aws
-                sudo docker pull ${IMAGE_URI}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubetest:latest
-                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 sonarqubetest:latest
+                sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
+                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 ${IMAGE_URI}:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             else
@@ -138,12 +137,13 @@ jobs:
                 sh "docker stop sonarqubetestawsecr || true"
                 echo "Removing Container..."
                 sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
-                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestawsecr\") || true"
+                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubeawsecr\") || true"
                 echo "Removing Image..."
-                sh "docker rmi \$(docker images | grep 'sonarqubetestdockerhub') || true"
+                sh "docker rmi \$(docker images | grep 'sonarqubetest') || true"
                 sh "docker rmi \$(docker images | grep 'sonarqubetestawsecr') || true"
-                sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin public.ecr.aws
-                sudo docker pull ${IMAGE_URI}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubetest:latest
-                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 sonarqubetest:latest
+                sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
+                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 ${IMAGE_URI}:latest
+                sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
+                docker ps
             fi
           '
