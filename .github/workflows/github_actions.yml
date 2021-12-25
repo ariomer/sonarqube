@@ -62,6 +62,7 @@ jobs:
           AWS_EC2_PUBLIC_IP: ${{ secrets.AWS_EC2_PUBLIC_IP  }}
           AWS_EC2_USERNAME: ${{ secrets.AWS_EC2_USERNAME  }}
           IMAGE_URI: ${{ secrets.ECR_IMAGE_URI }}
+          DOCKER_ECR_AUTH: ${{ secrets.DOCKER_ECR_AUTH }}
         run: |
           pwd
           echo "$AWS_EC2_PEM" > private_key && chmod 600 private_key
@@ -83,7 +84,7 @@ jobs:
                 echo "Removing Image..."
                 #docker images rmi $(docker images | grep 'sonarqubetest') || true
                 #docker images rmi $(docker images | grep 'sonarqubetestawsecr') || true
-                aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS -p ${aws-secret-access-key} ${IMAGE_URI}
+                aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS -p ${DOCKER_ECR_AUTH} ${IMAGE_URI}
                 docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
