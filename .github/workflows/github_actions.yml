@@ -84,8 +84,7 @@ jobs:
                 #docker images rmi $(docker images | grep 'sonarqubetest') || true
                 #docker images rmi $(docker images | grep 'sonarqubetestawsecr') || true
                 aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
-                cat ~/.docker/config.json
-                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
+                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             else
