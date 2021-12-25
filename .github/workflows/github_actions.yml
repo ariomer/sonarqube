@@ -5,9 +5,9 @@ on:
       - master
   pull_request:
     types: [opened, synchronize, reopened]
-  env:
-    AWS_REGION: eu-west-2
-    ECR_REPOSITORY: sonarqubetest
+env:
+  AWS_REGION: eu-west-2
+  ECR_REPOSITORY: sonarqubetest
 jobs:
   sonarcloud:
     name: SonarCloud
