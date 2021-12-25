@@ -75,7 +75,7 @@ jobs:
             if [[ $(which docker) && $(docker --version) ]]; then
                 #  Verify
                 #sudo docker run hello-world
-                echo "Stopping Service..."
+                echo "Stopping Service...."
                 #docker stop sonarqubetestdockerhub || true
                 #docker stop sonarqubetestawsecr || true
                 echo "Removing Container..."
