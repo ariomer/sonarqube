@@ -69,7 +69,7 @@ jobs:
             #  Install Docker
             #  Uninstall old versions
             #  sudo apt-get remove docker docker-engine docker.io containerd runc
-            if [ -x "$(command -v docker)"  ]; then
+            if [[ $(which docker) && $(docker --version) ]]; then
                 #  Verify
                 sudo docker run hello-world
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
