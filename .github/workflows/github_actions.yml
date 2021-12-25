@@ -49,6 +49,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: sonarqubetest
+          
         run: |
           docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:latest
@@ -60,6 +61,7 @@ jobs:
           AWS_EC2_PEM: ${{ secrets.AWS_EC2_PEM  }}
           AWS_EC2_PUBLIC_IP: ${{ secrets.AWS_EC2_PUBLIC_IP  }}
           AWS_EC2_USERNAME: ${{ secrets.AWS_EC2_USERNAME  }}
+          IMAGE_URI: ${{ secrets.ECR_IMAGE_URI }}
         run: |
           pwd
           echo "$AWS_EC2_PEM" > private_key && chmod 600 private_key
@@ -74,10 +76,16 @@ jobs:
                 #sudo docker run hello-world
                 echo "Stopping Service..."
                 sh "docker stop sonarqubetestdockerhub || true"
+                sh "docker stop sonarqubetestawsecr || true"
                 echo "Removing Container..."
                 sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
+                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestawsecr\") || true"
                 echo "Removing Image..."
                 sh "docker rmi \$(docker images | grep 'sonarqubetestdockerhub') || true"
+                sh "docker rmi \$(docker images | grep 'sonarqubetestawsecr') || true"
+                sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin public.ecr.aws
+                sudo docker pull ${IMAGE_URI}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubetest:latest
+                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 sonarqubetest:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             else
@@ -115,16 +123,27 @@ jobs:
                 #  install docker compose
                 sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
                 sudo chmod +x /usr/local/bin/docker-compose 
+                
+                # uninstall aws cli version 1
+                sudo rm -rf /bin/aws
+                # install aws cli version 2
+                sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                sudo unzip awscliv2.zip
+                sudo ./aws/install
 
                 #  Verify
                 #sudo docker run hello-world
                 echo "Stopping Service..."
                 sh "docker stop sonarqubetestdockerhub || true"
+                sh "docker stop sonarqubetestawsecr || true"
                 echo "Removing Container..."
                 sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
+                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestawsecr\") || true"
                 echo "Removing Image..."
                 sh "docker rmi \$(docker images | grep 'sonarqubetestdockerhub') || true"
-                sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
-                docker ps
+                sh "docker rmi \$(docker images | grep 'sonarqubetestawsecr') || true"
+                sudo aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin public.ecr.aws
+                sudo docker pull ${IMAGE_URI}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubetest:latest
+                sudo docker run -d --name sonarqubetestawsecr -p 8080:8080 sonarqubetest:latest
             fi
           '
