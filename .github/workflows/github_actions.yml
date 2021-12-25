@@ -44,7 +44,8 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      - name: Build, tag, and push image to Amazon ECR
+        
+      - name: Push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: sonarqubetest
@@ -52,7 +53,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
       
-      - name: Git pull
+      - name: Deploy on EC2
         env:
           AWS_EC2_PEM: ${{ secrets.AWS_EC2_PEM  }}
           AWS_EC2_PUBLIC_IP: ${{ secrets.AWS_EC2_PUBLIC_IP  }}
@@ -82,7 +83,7 @@ jobs:
 
 
             #  Add Docker’s official GPG key:
-             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
             echo \
               "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
