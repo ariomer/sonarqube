@@ -83,7 +83,7 @@ jobs:
                 echo "Removing Image..."
                 #docker images rmi $(docker images | grep 'sonarqubetest') || true
                 #docker images rmi $(docker images | grep 'sonarqubetestawsecr') || true
-                aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
+                aws ecr-public get-login-password --region ${aws-region} --no-include-email | docker login --username AWS --password-stdin ${IMAGE_URI}
                 docker pull ${IMAGE_URI}:latest
                 docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
