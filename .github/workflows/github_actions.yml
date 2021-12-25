@@ -50,6 +50,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: sonarqubetest
         run: |
+          docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
       
