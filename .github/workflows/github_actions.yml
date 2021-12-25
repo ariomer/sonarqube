@@ -107,5 +107,5 @@ jobs:
 
             #  Verify
             sudo docker run hello-world
-            sudo docker run -d --name sonarqubetest -p 8080:8080 https://210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubetest
+            sudo docker run -d --name sonarqubetest -p 8080:8080 ariomer/sonarqubetest:latest
           '
