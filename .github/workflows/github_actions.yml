@@ -71,9 +71,15 @@ jobs:
             #  sudo apt-get remove docker docker-engine docker.io containerd runc
             if [[ $(which docker) && $(docker --version) ]]; then
                 #  Verify
-                sudo docker run hello-world
+                #sudo docker run hello-world
+                echo "Stopping Service..."
+                sh "docker stop sonarqubetestdockerhub || true"
+                echo "Removing Container..."
+                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
+                echo "Removing Image..."
+                sh "docker rmi \$(docker images | grep 'sonarqubetestdockerhub') || true"
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
-                docker ps 
+                docker ps
             else
                 #  Set up the repository
                 sudo apt-get upgrade -y
@@ -111,7 +117,13 @@ jobs:
                 sudo chmod +x /usr/local/bin/docker-compose 
 
                 #  Verify
-                sudo docker run hello-world
+                #sudo docker run hello-world
+                echo "Stopping Service..."
+                sh "docker stop sonarqubetestdockerhub || true"
+                echo "Removing Container..."
+                sh "docker rm -f \$(docker ps -aqf \"name=sonarqubetestdockerhub\") || true"
+                echo "Removing Image..."
+                sh "docker rmi \$(docker images | grep 'sonarqubetestdockerhub') || true"
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             fi
