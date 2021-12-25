@@ -75,14 +75,14 @@ jobs:
                 #  Verify
                 #sudo docker run hello-world
                 echo "Stopping Service..."
-                docker stop sonarqubetestdockerhub || true
-                docker stop sonarqubetestawsecr || true
+                #docker stop sonarqubetestdockerhub || true
+                #docker stop sonarqubetestawsecr || true
                 echo "Removing Container..."
                 docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
                 docker rm -f $(docker ps -aqf "name=sonarqubeawsecr") || true
                 echo "Removing Image..."
-                docker rmi $(docker images | grep 'sonarqubetest') || true
-                docker rmi $(docker images | grep 'sonarqubetestawsecr') || true
+                #docker images rmi $(docker images | grep 'sonarqubetest') || true
+                #docker images rmi $(docker images | grep 'sonarqubetestawsecr') || true
                 aws ecr-public get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${IMAGE_URI}
                 docker pull ${IMAGE_URI}:latest
                 docker run -d --name sonarqubetestawsecr -p 6000:6000 ${IMAGE_URI}:latest
