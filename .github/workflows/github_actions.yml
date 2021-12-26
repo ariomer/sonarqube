@@ -74,7 +74,7 @@ jobs:
                 pwd
                 docker --version
                 docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
-                docker rm -f $(docker ps -aqf "name=sonarqubeawsecr") || true
+                docker rm -f $(docker ps -aqf "name=sonarqubetestawsecr") || true
                 aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
                 sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
@@ -129,7 +129,7 @@ jobs:
                 sh "docker stop sonarqubetestawsecr || true"
                 echo "Removing Container..."
                 sh "docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true"
-                sh "docker rm -f $(docker ps -aqf "name=sonarqubeawsecr") || true"
+                sh "docker rm -f $(docker ps -aqf "name=sonarqubetestawsecr") || true"
                 echo "Removing Image..."
                 sh "docker rmi $(docker images | grep 'sonarqubetest') || true"
                 sh "docker rmi $(docker images | grep 'sonarqubetestawsecr') || true"
