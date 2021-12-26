@@ -1,0 +1,125 @@
+name: Build
+on:
+  pull_request:
+    types: [ closed ]
+jobs:
+  merge_job:
+    name: Build, Push and Deploy
+    # this job will only run if the PR has been merged
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USERNAME}}
+          DOCKER_PASS: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - name: Build the Docker image
+        env:
+          GITHUB_RUN_NUMBER: 
+        run: |
+          docker build . --file Dockerfile --tag=ariomer/sonarqubetest:${{ github.run_number }}
+          docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER ariomer/sonarqubetest:latest
+      - name: Docker Push
+        run: |
+          docker push ariomer/sonarqubetest:$GITHUB_RUN_NUMBER
+          docker push ariomer/sonarqubetest:latest
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        
+      - name: Push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: sonarqubeawsecr
+          
+        run: |
+          docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      
+      - name: Deploy on EC2
+        env:
+          AWS_EC2_PEM: ${{ secrets.AWS_EC2_PEM  }}
+          AWS_EC2_PUBLIC_IP: ${{ secrets.AWS_EC2_PUBLIC_IP  }}
+          AWS_EC2_USERNAME: ${{ secrets.AWS_EC2_USERNAME  }}
+          #IMAGE_URI: ${{ secrets.ECR_IMAGE_URI }}
+          #DOCKER_ECR_AUTH: ${{ secrets.DOCKER_ECR_AUTH }}
+        run: |
+          pwd
+          echo "$AWS_EC2_PEM" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${AWS_EC2_USERNAME}@${AWS_EC2_PUBLIC_IP} '
+            #  Install Docker
+            #  Uninstall old versions
+            #  sudo apt-get remove docker docker-engine docker.io containerd runc
+            if [[ $(which docker) && $(docker --version) ]]; then
+                pwd
+                docker --version
+                docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
+                docker rm -f $(docker ps -aqf "name=sonarqubetestawsecr") || true
+                aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
+                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
+                sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
+                docker ps
+            else
+                #  Set up the repository
+                sudo apt-get upgrade -y
+                sudo apt-get update
+                sudo apt-get install -y \
+                    apt-transport-https \
+                    ca-certificates \
+                    curl \
+                    wget \
+                    gnupg \
+                    lsb-release \
+                    software-properties-common \
+                    gradle
+
+                #  Add Docker’s official GPG key:
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+                echo \
+                  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+                  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+                # install docker-ce
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+
+                #  Install Docker Engine
+                sudo apt-get update
+                sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+                sudo systemctl start docker
+                sudo systemctl enable docker
+                sudo usermod -a -G docker ubuntu
+
+                #  install docker compose
+                sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                sudo chmod +x /usr/local/bin/docker-compose 
+                
+                # uninstall aws cli version 1
+                sudo rm -rf /bin/aws
+                # install aws cli version 2
+                sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                sudo unzip awscliv2.zip
+                sudo ./aws/install
+
+                pwd
+                docker --version
+                docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
+                docker rm -f $(docker ps -aqf "name=sonarqubetestawsecr") || true
+                aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
+                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
+                sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
+                docker ps
+            fi
+          '
