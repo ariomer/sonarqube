@@ -69,7 +69,7 @@ jobs:
                 docker --version
                 docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
                 docker rm -f $(docker ps -aqf "name=sonarqubetestawsecr") || true
-                USER_ID = 'curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep '"accountId"' | cut -d\" -f4'
+                USER_ID=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep '"accountId"' | cut -d\" -f4)
                 aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin ${USER_ID}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
                 sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 ${USER_ID}.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
