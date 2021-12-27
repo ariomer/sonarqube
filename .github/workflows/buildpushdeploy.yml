@@ -18,16 +18,14 @@ jobs:
           DOCKER_PASS: ${{secrets.DOCKER_PASSWORD}}
         run: |
           docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - name: Build the Docker image
-        env:
-          GITHUB_RUN_NUMBER: 
+      - name: Build the Docker image  
         run: |
           pwd
           docker build . --file Dockerfile --tag=ariomer/sonarqubetest:${{ github.run_number }}
-          docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER ariomer/sonarqubetest:latest
+          docker tag ariomer/sonarqubetest:$GITHUB_RUN_ID ariomer/sonarqubetest:latest
       - name: Docker Push
         run: |
-          docker push ariomer/sonarqubetest:$GITHUB_RUN_NUMBER
+          docker push ariomer/sonarqubetest:$GITHUB_RUN_ID
           docker push ariomer/sonarqubetest:latest
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -46,9 +44,9 @@ jobs:
           ECR_REPOSITORY: sonarqubeawsecr
           
         run: |
-          docker tag ariomer/sonarqubetest:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
+          docker tag ariomer/sonarqubetest:$GITHUB_RUN_ID $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_ID
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_ID $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_ID
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
       
       - name: Deploy on EC2
@@ -61,6 +59,7 @@ jobs:
         run: |
           pwd
           echo "$AWS_EC2_PEM" > private_key && chmod 600 private_key
+          #AWS_USER_ID=
           ssh -o StrictHostKeyChecking=no -i private_key ${AWS_EC2_USERNAME}@${AWS_EC2_PUBLIC_IP} '
             #  Install Docker
             #  Uninstall old versions
@@ -70,8 +69,9 @@ jobs:
                 docker --version
                 docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
                 docker rm -f $(docker ps -aqf "name=sonarqubetestawsecr") || true
-                aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
-                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 210329335172.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
+                USER_ID = 210329335172
+                aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin $USER_ID.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
+                sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 $USER_ID.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
                 docker ps
             else
