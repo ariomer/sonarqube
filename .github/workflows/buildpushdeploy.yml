@@ -22,10 +22,10 @@ jobs:
         run: |
           pwd
           docker build . --file Dockerfile --tag=ariomer/sonarqubetest:${{ github.run_id }}
-          docker tag ariomer/sonarqubetest:$GITHUB_RUN_ID ariomer/sonarqubetest:latest
+          docker tag ariomer/sonarqubetest:${{ github.run_id }} ariomer/sonarqubetest:latest
       - name: Docker Push
         run: |
-          docker push ariomer/sonarqubetest:$GITHUB_RUN_ID
+          docker push ariomer/sonarqubetest:${{ github.run_id }}
           docker push ariomer/sonarqubetest:latest
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -44,9 +44,9 @@ jobs:
           ECR_REPOSITORY: sonarqubeawsecr
           
         run: |
-          docker tag ariomer/sonarqubetest:$GITHUB_RUN_ID $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_ID
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_ID $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_ID
+          docker tag ariomer/sonarqubetest:$GITHUB_RUN_ID $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.run_id }}
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.run_id }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.run_id }}
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
       
       - name: Deploy on EC2
@@ -69,7 +69,7 @@ jobs:
                 docker --version
                 docker rm -f $(docker ps -aqf "name=sonarqubetestdockerhub") || true
                 docker rm -f $(docker ps -aqf "name=sonarqubetestawsecr") || true
-                USER_ID = 210329335172
+                USER_ID = 'curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep '"accountId"' | cut -d\" -f4'
                 aws ecr get-login-password --region ${aws-region} | docker login --username AWS --password-stdin $USER_ID.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr
                 sudo docker run -d --name sonarqubetestawsecr -p 6000:6000 $USER_ID.dkr.ecr.eu-west-2.amazonaws.com/sonarqubeawsecr:latest
                 sudo docker run -d --name sonarqubetestdockerhub -p 8080:8080 ariomer/sonarqubetest:latest
