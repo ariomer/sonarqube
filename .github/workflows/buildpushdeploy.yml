@@ -21,11 +21,11 @@ jobs:
       - name: Build the Docker image  
         run: |
           pwd
-          docker build . --file Dockerfile --tag=ariomer/sonarqubetest:${{ github.run_id }}
-          docker tag ariomer/sonarqubetest:${{ github.run_id }} ariomer/sonarqubetest:latest
+          docker build . --file Dockerfile --tag=ariomer/sonarqubetest:${{ github_sha }}
+          docker tag ariomer/sonarqubetest:${{ github_sha }} ariomer/sonarqubetest:latest
       - name: Docker Push
         run: |
-          docker push ariomer/sonarqubetest:${{ github.run_id }}
+          docker push ariomer/sonarqubetest:${{ github_sha }}
           docker push ariomer/sonarqubetest:latest
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -44,9 +44,9 @@ jobs:
           ECR_REPOSITORY: sonarqubeawsecr
           
         run: |
-          docker tag ariomer/sonarqubetest:$GITHUB_RUN_ID $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.run_id }}
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.run_id }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.run_id }}
+          docker tag ariomer/sonarqubetest:${{ github_sha }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ github_sha }}
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ github_sha }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github_sha }}
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
       
       - name: Deploy on EC2
