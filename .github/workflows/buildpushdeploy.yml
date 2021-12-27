@@ -21,7 +21,7 @@ jobs:
       - name: Build the Docker image  
         run: |
           pwd
-          docker build . --file Dockerfile --tag=ariomer/sonarqubetest:${{ github.run_number }}
+          docker build . --file Dockerfile --tag=ariomer/sonarqubetest:${{ github.run_id }}
           docker tag ariomer/sonarqubetest:$GITHUB_RUN_ID ariomer/sonarqubetest:latest
       - name: Docker Push
         run: |
